@@ -5,6 +5,7 @@ import statistics
 import matplotlib.pyplot as plt
 import random
 
+
 class RandomVariable(ABC):
     @abstractmethod
     def pdf(self, x):
@@ -17,8 +18,6 @@ class RandomVariable(ABC):
     @abstractmethod
     def quantile(self, alpha):
         pass
-
-
 
 
 class NormalRandomVariable(RandomVariable):
@@ -220,7 +219,6 @@ generator2 = TukeyRandomNumberGenerator(rv, nrv, 0.1)
 sample2 = generator2.get(N)
 rv2 = NonParametricRandomVariable(sample2)
 generator3 = SimpleRandomNumberGenerator(rv2)
-
 
 
 modelling = Modelling(generator3, [ThreeQuantileEstimation(), AverageQuartileRange()], M, location)
