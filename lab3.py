@@ -116,7 +116,7 @@ class ConfidenceInterval(Estimate):
             return 2.6259
 
     def _get_h(self) -> float:
-        self.h = math.sqrt(SampleVariance(self.sample).get())
+        hn = math.sqrt(SampleVariance(self.sample).get())
 
         accuracy = 1
 
@@ -128,15 +128,15 @@ class ConfidenceInterval(Estimate):
                 for j, sample_j in enumerate(self.sample):
                     if i == j:
                         continue
-                    difference = (sample_j - sample_i) / self.h
+                    difference = (sample_j - sample_i)
                     k2 = self.core.h(difference)
                     k1 = self.core._k(difference)
                     num += k2 * (sample_j - sample_i)
                     den += k1
                 s += num / den
-            new_std_deviation = -s / len(self.sample)
-            accuracy = abs(new_std_deviation - self.h)
-            self.h = new_std_deviation
+            hn = -s / len(self.sample)
+            accuracy = abs(hn - hn)
+            self.h = hn
 
         return self.h
 
@@ -153,15 +153,15 @@ class ConfidenceInterval(Estimate):
 
         lower_border = median - tetta
         upper_border = median + tetta
-        print(tetta)
         return lower_border, upper_border
 
 
 text = input().split()
-
 
 sample = FileManager(text[0]).read_sample()
 
 CI = ConfidenceInterval(sample, NormalCore(), float(text[1]))
 print(CI.get())
 
+
+#C:\Users\Илья\Desktop\test.txt 0.95

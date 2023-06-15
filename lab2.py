@@ -7,18 +7,19 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import math
 
+
 class RandomVariable(ABC):
-  @abstractmethod
-  def pdf(self, x):
-    pass
+    @abstractmethod
+    def pdf(self, x):
+        pass
 
-  @abstractmethod
-  def cdf(self, x):
-    pass
+    @abstractmethod
+    def cdf(self, x):
+        pass
 
-  @abstractmethod
-  def quantile(self, alpha):
-    pass
+    @abstractmethod
+    def quantile(self, alpha):
+        pass
 
 
 class Core(ABC):
@@ -36,12 +37,12 @@ class Core(ABC):
 
 
 class RandomNumberGenerator(ABC):
-  def __init__(self, random_variable: RandomVariable):
-    self.random_variable = random_variable
+    def __init__(self, random_variable: RandomVariable):
+        self.random_variable = random_variable
 
-  @abstractmethod
-  def get(self, N):
-    pass
+    @abstractmethod
+    def get(self, N):
+        pass
 
 
 class Estimation(ABC):
@@ -63,111 +64,114 @@ class SampleVariance(Estimation):
 
 
 class SimpleRandomNumberGenerator(RandomNumberGenerator):
-  def __init__(self, random_variable):
-    super().__init__(random_variable)
+    def __init__(self, random_variable):
+        super().__init__(random_variable)
 
-  def get(self, N):
-    us = np.random.uniform(0, 1, N)
-    return np.vectorize(self.random_variable.quantile)(us)
+    def get(self, N):
+        us = np.random.uniform(0, 1, N)
+        return np.vectorize(self.random_variable.quantile)(us)
 
 
 class NormalRandomVariable(RandomVariable):
-  def __init__(self, location=0, scale=1) -> None:
-    super().__init__()
-    self.location = location
-    self.scale = scale
-
-  def pdf(self, x):
-    z = (x - self.location) / self.scale
-    return math.exp(-0.5 * z * z) / (math.sqrt(2 * math.pi) * self.scale)
-
-  def cdf(self, x):
-    z = (x - self.location) / self.scale
-    if z <= 0:
-      return 0.852 * math.exp(-math.pow((-z + 1.5774) / 2.0637, 2.34))
-    return 1 - 0.852 * math.exp(-math.pow((z + 1.5774) / 2.0637, 2.34))
-
-  def quantile(self, alpha):
-    return self.location + 4.91 * self.scale * (math.pow(alpha, 0.14) - math.pow(1 - alpha, 0.14))
-
-class UniformRandomVariable(RandomVariable):
-  def __init__(self, a=0, b=1) -> None:
-    super().__init__()
-    self.a = a
-    self.b = b
-
-  def pdf(self, x):
-    if x >= self.a and x <= self.b:
-      return 1 / (self.b - self.a)
-    else:
-      return 0
-
-  def cdf(self, x):
-    if x <= self.a:
-      return 0
-    elif x >=self.b:
-      return 1
-    else:
-      return (x - self.a) / (self.b - self.a)
-
-    def quantile(self, alpha):
-      return self.a + alpha * (self.b - self.a)
-
-class ExponentialRandomVariable(RandomVariable):
-    def __init__(self, rate = 1):
-      self.rate = rate
+    def __init__(self, location=0, scale=1) -> None:
+        super().__init__()
+        self.location = location
+        self.scale = scale
 
     def pdf(self, x):
-      if x < 0:
-        return 0
-      else:
-        return self.rate * math.exp(-self.rate * x)
+        z = (x - self.location) / self.scale
+        return math.exp(-0.5 * z * z) / (math.sqrt(2 * math.pi) * self.scale)
 
     def cdf(self, x):
-      if x < 0:
-        return 0
-      else:
-        return 1 - math.exp(-self.rate * x)
+        z = (x - self.location) / self.scale
+        if z <= 0:
+            return 0.852 * math.exp(-math.pow((-z + 1.5774) / 2.0637, 2.34))
+        return 1 - 0.852 * math.exp(-math.pow((z + 1.5774) / 2.0637, 2.34))
 
     def quantile(self, alpha):
-      return -math.log(1 - alpha) / self.rate
+        return self.location + 4.91 * self.scale * (math.pow(alpha, 0.14) - math.pow(1 - alpha, 0.14))
+
+
+class UniformRandomVariable(RandomVariable):
+    def __init__(self, a=0, b=1) -> None:
+        super().__init__()
+        self.a = a
+        self.b = b
+
+    def pdf(self, x):
+        if x >= self.a and x <= self.b:
+            return 1 / (self.b - self.a)
+        else:
+            return 0
+
+    def cdf(self, x):
+        if x <= self.a:
+            return 0
+        elif x >= self.b:
+            return 1
+        else:
+            return (x - self.a) / (self.b - self.a)
+
+    def quantile(self, alpha):
+        return self.a + alpha * (self.b - self.a)
+
+
+class ExponentialRandomVariable(RandomVariable):
+    def __init__(self, rate=1):
+        self.rate = rate
+
+    def pdf(self, x):
+        if x < 0:
+            return 0
+        else:
+            return self.rate * math.exp(-self.rate * x)
+
+    def cdf(self, x):
+        if x < 0:
+            return 0
+        else:
+            return 1 - math.exp(-self.rate * x)
+
+    def quantile(self, alpha):
+        return -math.log(1 - alpha) / self.rate
 
 
 class LaplaceRandomVariable(RandomVariable):
     def __init__(self, loc=0, scale=1):
-      self.loc = loc
-      self.scale = scale
+        self.loc = loc
+        self.scale = scale
 
     def pdf(self, x):
-      return 0.5 * self.scale * math.exp(-self.scale * abs(x - self.loc))
+        return 0.5 * self.scale * math.exp(-self.scale * abs(x - self.loc))
 
     def cdf(self, x):
-      if x < self.loc:
-        return 0.5 * math.exp((x - self.loc) / self.scale)
-      else:
-        return 1 - 0.5 * math.exp(-(x - self.loc) / self.scale)
+        if x < self.loc:
+            return 0.5 * math.exp((x - self.loc) / self.scale)
+        else:
+            return 1 - 0.5 * math.exp(-(x - self.loc) / self.scale)
 
     def quantile(self, alpha):
-      if alpha == 0.5:
-        return self.loc
-      elif alpha < 0.5:
-        return self.loc - self.scale * math.log(1 - 2 * alpha)
-      else:
-        return self.loc + self.scale * math.log(2 * alpha - 1)
+        if alpha == 0.5:
+            return self.loc
+        elif alpha < 0.5:
+            return self.loc - self.scale * math.log(1 - 2 * alpha)
+        else:
+            return self.loc + self.scale * math.log(2 * alpha - 1)
+
 
 class CauchyRandomVariable(RandomVariable):
     def __init__(self, loc=0, scale=1):
-      self.loc = loc
-      self.scale = scale
+        self.loc = loc
+        self.scale = scale
 
     def pdf(self, x):
-      return 1 / (math.pi * self.scale * (1 + ((x - self.loc) / self.scale) ** 2))
+        return 1 / (math.pi * self.scale * (1 + ((x - self.loc) / self.scale) ** 2))
 
     def cdf(self, x):
-      return 0.5 + math.atan((x - self.loc) / self.scale) / math.pi
+        return 0.5 + math.atan((x - self.loc) / self.scale) / math.pi
 
     def quantile(self, alpha):
-      return self.loc + self.scale * math.tan(math.pi * (alpha - 0.5))
+        return self.loc + self.scale * math.tan(math.pi * (alpha - 0.5))
 
 
 class NormalCore(Core):
@@ -241,7 +245,6 @@ class SmoothedRandomVariable(RandomVariable, Estimation):
         super().__init__(sample)
         self.core = core
         self.h = self._get_h()
-
 
     def _get_h(self) -> float:
         self.h = math.sqrt(SampleVariance(self.sample).get())
